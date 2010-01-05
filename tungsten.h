@@ -1,6 +1,8 @@
 #ifndef __TUNGSTEN_H__
 #define __TUNGSTEN_H__
 
+typedef enum { FALSE = 0, TRUE = 1 } bool;
+
 #include <windows.h>
 #include "iTunesMobileDevice.h"
 
@@ -19,6 +21,7 @@ void DLL_EXPORT iPhone_init();
 bool ConnectToPhone();
 void NotifyCallback(AMDeviceNotificationCallbackInfo*);
 bool GetFiles(char*);
+bool FileExists(char*);
 
 #ifdef __cplusplus
 }
