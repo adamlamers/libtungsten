@@ -1,60 +1,46 @@
+/* File: tungsten.c
+ * Creation Date: December 17th, 2009
+ * Last Modified Date: January 9th, 2010
+ * Version: 0.1.14
+ * Contact: Adam Lamers <adam@millenniumsoftworks.com>
+*/
+
 #include "tungsten.h"
 #include <stdio.h>
 #include <windows.h>
 
-DeviceNotificationCallback        dnc;
-DeviceRestoreNotificationCallback drn1;
-DeviceRestoreNotificationCallback drn2;
-DeviceRestoreNotificationCallback drn3;
-DeviceRestoreNotificationCallback drn4;
+char iPhone_LastError[255];
 
-void* iPhoneHandle;
-void* hAFC = NULL;
-void* hService = NULL;
-bool  connected;
-char* current_directory;
-bool  wasAFC2;
-
-void iPhone_init()
+char *iPhone_GetLastError()
 {
-    dnc = &NotifyCallback;
-    
+    return iPhone_LastError;
+}
+
+void iPhone_SetLastError(char *format, ...)
+{
+    va_list args;
+    va_start(args, format);
+    vsprintf(iPhone_LastError, format, args);
+    va_end(args);
+}
+
+void iPhone_init(iPhone *iphone)
+{
     void* notification = malloc(sizeof(void*));
-    int ret = AMDeviceNotificationSubscribe(dnc, 0, 0, 0, notification);
+    int ret = AMDeviceNotificationSubscribe(iphone->dnc, 0, 0, 0, notification);
     if(ret != 0)
-        fprintf(stderr, "AMDeviceNotificationSubscribe failed with error %d", ret);
+        iPhone_SetLastError("AMDeviceNotificationSubscribe failed with error %d", ret);
     
-    ret = AMRestoreRegisterForDeviceNotifications(drn1, drn2, drn3, drn4, 0, NULL);
+    ret = AMRestoreRegisterForDeviceNotifications(iphone->drn1, iphone->drn2, iphone->drn3, iphone->drn4, 0, NULL);
     if(ret != 0)
-        fprintf(stderr, "AMRestoreRegisterForDeviceNotifications failed with error %d", ret);
+        iPhone_SetLastError("AMRestoreRegisterForDeviceNotifications failed with error %d", ret);
     free(notification);
 }
 
-void NotifyCallback(AMDeviceNotificationCallbackInfo* callback)
-{
-    switch(callback->msg)
-    {
-        case Connected:
-            iPhoneHandle = callback->dev;
-            if(ConnectToPhone() == TRUE)
-            {
-                //MessageBox(NULL, "Connected", "iPhone Event", MB_OK);
-                GetFiles("/bin");
-            }
-        break;
-        case Disconnected:
-            connected = FALSE;
-            //MessageBox(NULL, "Disconnected", "iPhone Event", MB_OK);
-        break;
-        default:
-        break;
-    }
-}
-
-bool FileExists(char *path)
+BOOL iPhone_FileExists(iPhone *iphone, char *path)
 {
     void *data = NULL;
-    int ret = AFCFileInfoOpen(hAFC, path, &data);
+    int ret = AFCFileInfoOpen(iphone->hAFC, path, &data);
     if(ret == 0) 
     {
         AFCKeyValueClose(data);
@@ -64,44 +50,89 @@ bool FileExists(char *path)
         return FALSE;
 }
 
-bool GetFiles(char *path)
+BOOL GetFiles(iPhone* iphone, char *path)
 {
-    if(connected == FALSE){ fprintf(stderr, "GetFiles() failed, device not connected."); return FALSE; } //If we aren't connected, we can't get files.
+    if(iphone->connected == FALSE){ iPhone_SetLastError("GetFiles() failed, device not connected."); return FALSE; } //If we aren't connected, we can't get files.
     void *hDir = NULL;
-    if(AFCDirectoryOpen(hAFC, path, &hDir) != 0){ fprintf(stderr, "AFCDirectoryOpen failed"); return FALSE; }
+    if(AFCDirectoryOpen(iphone->hAFC, path, &hDir) != 0){ iPhone_SetLastError("AFCDirectoryOpen failed"); return FALSE; }
     char *buffer = NULL;
     while(1)
     {
-        AFCDirectoryRead(hAFC, hDir, &buffer);
+        AFCDirectoryRead(iphone->hAFC, hDir, &buffer);
         if(buffer == NULL) break;
         printf("%s\n", buffer);
     }
-    AFCDirectoryClose(hAFC, hDir);
+    AFCDirectoryClose(iphone->hAFC, hDir);
     return TRUE;
 }
 
-bool ConnectToPhone()
+BOOL iPhone_Connect(iPhone *iphone)
 {
-    if(AMDeviceConnect(iPhoneHandle) == 1)   fprintf(stderr, "Device is in recovery mode.");
-    if(AMDeviceIsPaired(iPhoneHandle) == 0){ fprintf(stderr, "AMDeviceIsPaired failed."); return FALSE; }
-    if(AMDeviceValidatePairing(iPhoneHandle) != 0){ fprintf(stderr, "AMDeviceValidatePairing failed."); return FALSE; }
-    if(AMDeviceStartSession(iPhoneHandle) == 1){ fprintf(stderr, "AMDeviceStartSession failed."); return FALSE; }
-    bool isAfc2 = 0 == AMDeviceStartService(iPhoneHandle, __CFStringMakeConstantString("com.apple.afc2"), &hService, NULL);
+    if(AMDeviceConnect(iphone->handle) == 1)   iPhone_SetLastError("Device is in recovery mode.");
+    if(AMDeviceIsPaired(iphone->handle) == 0){ iPhone_SetLastError("AMDeviceIsPaired failed."); return FALSE; }
+    if(AMDeviceValidatePairing(iphone->handle) != 0){ iPhone_SetLastError("AMDeviceValidatePairing failed."); return FALSE; }
+    if(AMDeviceStartSession(iphone->handle) == 1){ iPhone_SetLastError("AMDeviceStartSession failed."); return FALSE; }
+    BOOL isAfc2 =( AMDeviceStartService(iphone->handle, __CFStringMakeConstantString("com.apple.afc2"), &iphone->hService, NULL) == 0);
     if(!isAfc2)
     {
-        bool isAfc = 0 == AMDeviceStartService(iPhoneHandle, __CFStringMakeConstantString("com.apple.afc"), &hService, NULL);
+        BOOL isAfc = (AMDeviceStartService(iphone->handle, __CFStringMakeConstantString("com.apple.afc"), &iphone->hService, NULL) == 0);
         if(!isAfc) return FALSE;
     }
     else
-        wasAFC2 = TRUE;
-    if(AFCConnectionOpen(hService, 0, &hAFC) != 0){ fprintf(stderr, "AFCConnectionOpen failed."); return FALSE; }
-    connected = TRUE;
+        iphone->wasAFC2 = TRUE;
+    if(AFCConnectionOpen(iphone->hService, 0, &iphone->hAFC) != 0){ iPhone_SetLastError("AFCConnectionOpen failed."); return FALSE; }
+    iphone->connected = TRUE;
     return TRUE;
 }
 
-int main(int argc, char **argv)
+void iPhone_WaitForConnect(iPhone *iphone)
 {
-    iPhone_init();
-    getchar();
+    while(iphone->connected == FALSE);
+}
+
+int iPhone_GetFileType(iPhone *iphone, char *path)
+{
+    if(iphone->connected)
+    {
+        void *data = NULL;
+        int ret = AFCFileInfoOpen(iphone->hAFC, path, &data);
+        if(ret == 0 && data != NULL)
+        {
+            void *name, *val;
+            while(AFCKeyValueRead(data, &name, &val) == 0 && name != NULL && val != NULL)
+            {
+                if(strcmp(name, "st_ifmt") == 0)
+                {
+                    if(strcmp(val, "S_IFREG") == 0) return AMD_FILE;
+                    else if(strcmp(val, "S_IFDIR") == 0) return AMD_DIR;
+                    else if(strcmp(val, "S_IFLNK") == 0) return AMD_LINK;
+                    else return AMD_UNKNOWN;
+                }
+            }
+            AFCKeyValueClose(data);
+        }
+    }
+    return AMD_UNKNOWN;
+}
+
+long iPhone_GetFileSize(iPhone *iphone, char *path)
+{
+    if(iphone->connected)
+    {
+        void *data = NULL;
+        int ret = AFCFileInfoOpen(iphone->hAFC, path, &data);
+        if(ret == 0 && data != NULL)
+        {
+            void *name, *val;
+            while(AFCKeyValueRead(data, &name, &val) == 0 && name != NULL && val != NULL)
+            {
+                if(strcmp(name, "st_size") == 0)
+                {
+                    return atol(val);
+                }
+            }
+            AFCKeyValueClose(data);
+        }
+    }
     return 0;
 }

@@ -15,3 +15,28 @@
 	<stdio.h>
 	<windows.h>
 
+1263062711 source:d:\projects\git\c\libtungsten\tungsten.c
+	"tungsten.h"
+	<stdio.h>
+	<windows.h>
+
+1263069788 d:\projects\git\c\libtungsten\tungsten.h
+	<windows.h>
+	"iTunesMobileDevice.h"
+
+1263069638 d:\projects\git\c\libtungsten\itunesmobiledevice.h
+
+1263054472 source:d:\projects\git\c\libtungsten\main.c
+	"tungsten.h"
+	"iTunesMobileDevice.h"
+	<stdio.h>
+
+1263070622 source:d:\projects\git\c\libtungsten\test.c
+	"tungsten.h"
+	"iTunesMobileDevice.h"
+	<stdio.h>
+
+1263071002 source:d:\projects\git\c\libtungsten\iphonefile.c
+	"tungsten.h"
+	<stdio.h>
+
