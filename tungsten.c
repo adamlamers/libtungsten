@@ -11,11 +11,15 @@
 
 char iPhone_LastError[255];
 
+/** Retrieves the error string of the last error that occured in the library
+  * @return char* containing the error text.
+  */
 char *iPhone_GetLastError()
 {
     return iPhone_LastError;
 }
 
+/** Internal function: Set the error text of the last error that occured. */
 void iPhone_SetLastError(char *format, ...)
 {
     va_list args;
@@ -24,6 +28,9 @@ void iPhone_SetLastError(char *format, ...)
     va_end(args);
 }
 
+/** Initializes an iPhone, registering it's callbacks to recieve device notifications.
+  * @param iphone Pointer to an iPhone struct with the dnc, drn1, drn2, drn3, and drn4 members initialized to function callbacks.
+  */  
 void iPhone_init(iPhone *iphone)
 {
     void* notification = malloc(sizeof(void*));
@@ -37,6 +44,11 @@ void iPhone_init(iPhone *iphone)
     free(notification);
 }
 
+/** Determines whether or not a file exists on the device.
+  * @param iphone The iPhone on which to locate the file.
+  * @param path   The UNIX style path to the file on the device.
+  * @returns BOOL indicating whether or not the file exists. (TRUE = exists)
+  */
 BOOL iPhone_FileExists(iPhone *iphone, char *path)
 {
     void *data = NULL;
@@ -50,6 +62,7 @@ BOOL iPhone_FileExists(iPhone *iphone, char *path)
         return FALSE;
 }
 
+/** Debug function, retrieves all files in a directory and prints them to stdout */
 BOOL GetFiles(iPhone* iphone, char *path)
 {
     if(iphone->connected == FALSE){ iPhone_SetLastError("GetFiles() failed, device not connected."); return FALSE; } //If we aren't connected, we can't get files.
@@ -66,30 +79,63 @@ BOOL GetFiles(iPhone* iphone, char *path)
     return TRUE;
 }
 
+/** Connect to an iPhone device, and register callbacks.
+  * Members of the iPhone struct that must be valid: dnc
+  * for device notifications
+  */
 BOOL iPhone_Connect(iPhone *iphone)
 {
-    if(AMDeviceConnect(iphone->handle) == 1)   iPhone_SetLastError("Device is in recovery mode.");
-    if(AMDeviceIsPaired(iphone->handle) == 0){ iPhone_SetLastError("AMDeviceIsPaired failed."); return FALSE; }
-    if(AMDeviceValidatePairing(iphone->handle) != 0){ iPhone_SetLastError("AMDeviceValidatePairing failed."); return FALSE; }
-    if(AMDeviceStartSession(iphone->handle) == 1){ iPhone_SetLastError("AMDeviceStartSession failed."); return FALSE; }
-    BOOL isAfc2 =( AMDeviceStartService(iphone->handle, __CFStringMakeConstantString("com.apple.afc2"), &iphone->hService, NULL) == 0);
-    if(!isAfc2)
-    {
-        BOOL isAfc = (AMDeviceStartService(iphone->handle, __CFStringMakeConstantString("com.apple.afc"), &iphone->hService, NULL) == 0);
-        if(!isAfc) return FALSE;
+    if(AMDeviceConnect(iphone->handle) == 1)
+    { 
+        iPhone_SetLastError("Device is in recovery mode."); 
+        return FALSE ; 
     }
-    else
-        iphone->wasAFC2 = TRUE;
-    if(AFCConnectionOpen(iphone->hService, 0, &iphone->hAFC) != 0){ iPhone_SetLastError("AFCConnectionOpen failed."); return FALSE; }
+    
+    if(AMDeviceIsPaired(iphone->handle) == 0)
+    { 
+        iPhone_SetLastError("AMDeviceIsPaired failed."); 
+        return FALSE; 
+    }
+    
+    if(AMDeviceValidatePairing(iphone->handle) != 0)
+    { 
+        iPhone_SetLastError("AMDeviceValidatePairing failed."); 
+        return FALSE; 
+    }
+    
+    if(AMDeviceStartSession(iphone->handle) == 1)
+    { 
+        iPhone_SetLastError("AMDeviceStartSession failed."); 
+        return FALSE; 
+    }
+    
+    if(AMDeviceStartService(iphone->handle, __CFStringMakeConstantString("com.apple.afc2"), &iphone->hService, NULL) != 0)
+    {
+        if(AMDeviceStartService(iphone->handle, __CFStringMakeConstantString("com.apple.afc"), &iphone->hService, NULL) != 0)
+            return FALSE;
+    }
+    
+    if(AFCConnectionOpen(iphone->hService, 0, &iphone->hAFC) != 0)
+    { 
+        iPhone_SetLastError("AFCConnectionOpen failed."); 
+        return FALSE; 
+    }
+    
     iphone->connected = TRUE;
     return TRUE;
 }
 
+/** Waits for the specified iPhone to connect. */
 void iPhone_WaitForConnect(iPhone *iphone)
 {
     while(iphone->connected == FALSE);
 }
 
+/** Retrieves the type of the file.
+  * @param iphone The iPhone on which to locate the file.
+  * @param path   The UNIX style path to the file on the iPhone.
+  * @return AMD_FILE for regular file, AMD_DIR for directory, and AMD_LINK for hard or symbolic links.
+  */
 int iPhone_GetFileType(iPhone *iphone, char *path)
 {
     if(iphone->connected)
@@ -115,6 +161,11 @@ int iPhone_GetFileType(iPhone *iphone, char *path)
     return AMD_UNKNOWN;
 }
 
+/** Retrieves the file size of a file on an iPhone.
+  * @param iphone The iPhone on which to locate the file.
+  * @param path   The UNIX style path to the file on the iPhone.
+  * @return The size of the file.
+  */ 
 long iPhone_GetFileSize(iPhone *iphone, char *path)
 {
     if(iphone->connected)

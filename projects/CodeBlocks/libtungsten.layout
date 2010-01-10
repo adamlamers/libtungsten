@@ -2,9 +2,18 @@
 <CodeBlocks_layout_file>
 	<ActiveTarget name="Debug" />
 	<File name="..\..\iTunesMobileDevice.h" open="0" top="0" tabpos="0">
-		<Cursor position="379" topLine="0" />
+		<Cursor position="905" topLine="0" />
 	</File>
-	<File name="..\..\tungsten.c" open="0" top="0" tabpos="0">
-		<Cursor position="421" topLine="0" />
+	<File name="..\..\iphonefile.c" open="0" top="0" tabpos="0">
+		<Cursor position="1066" topLine="0" />
+	</File>
+	<File name="..\..\test.c" open="0" top="0" tabpos="0">
+		<Cursor position="1370" topLine="6" />
+	</File>
+	<File name="..\..\tungsten.c" open="1" top="1" tabpos="1">
+		<Cursor position="548" topLine="89" />
+	</File>
+	<File name="..\..\tungsten.h" open="0" top="0" tabpos="0">
+		<Cursor position="2176" topLine="0" />
 	</File>
 </CodeBlocks_layout_file>

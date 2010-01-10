@@ -8,6 +8,12 @@
 #include "tungsten.h"
 #include <stdio.h>
 
+/** Opens a file on the device for reading or writing.
+  * @param iphone The iPhone on which to locate the file.
+  * @param path   The UNIX style path to the file on the device.
+  * @param mode   The mode string. ("r" = read only, "w" = write only, "rw" = read and write);
+  * @return Pointer to an iPhoneFile structure on success, NULL on failure.
+  */
 iPhoneFile* iPhone_fopen(iPhone *iphone, char *path, char *mode)
 {
     iPhoneFile *file = malloc(sizeof(iPhoneFile));
@@ -32,6 +38,10 @@ iPhoneFile* iPhone_fopen(iPhone *iphone, char *path, char *mode)
     return file;
 }
 
+/** Close a handle to an iPhoneFile.
+  * @param iphone The iPhone which the file belongs to.
+  * @param file Pointer to an iPhoneFile structure to release.
+  */
 void iPhone_fclose(iPhone *iphone, iPhoneFile *file)
 {
     int ret = AFCFileRefClose(iphone->hAFC, file->handle);
@@ -42,6 +52,11 @@ void iPhone_fclose(iPhone *iphone, iPhoneFile *file)
         iPhone_SetLastError("AFCFileRefClose failed with error %d", ret);
 }
 
+/** Tell the current position within a file.
+  * @param iphone The iPhone which the file belongs to.
+  * @param file   Pointer to an iPhoneFile to retrieve position from.
+  * @return Current position within the file.
+  */
 long iPhone_ftell(iPhone *iphone, iPhoneFile *file)
 {
     long pos = 0;

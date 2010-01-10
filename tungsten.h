@@ -32,7 +32,6 @@ typedef struct iPhone_tag
     void* hAFC;                             /** < com.apple.AFC service handle */
     void* hService;                         /** < Service handle */
     BOOL  connected;                        /** < Connection status */ 
-    BOOL  wasAFC2;
 }iPhone;
 
 typedef struct iPhoneFileInfo_tag
@@ -54,17 +53,17 @@ extern "C"
 {
 #endif
 
-void DLL_EXPORT iPhone_init(iPhone*);
-BOOL DLL_EXPORT iPhone_Connect(iPhone*);
-BOOL DLL_EXPORT GetFiles(iPhone*,char*);
-BOOL DLL_EXPORT iPhone_FileExists(iPhone*,char*);
-long DLL_EXPORT iPhone_GetFileSize(iPhone*, char*);
-void DLL_EXPORT iPhone_WaitForConnect(iPhone*);
-char DLL_EXPORT *iPhone_GetLastError();
+void       DLL_EXPORT iPhone_init(iPhone*);
+BOOL       DLL_EXPORT iPhone_Connect(iPhone*);
+BOOL       DLL_EXPORT GetFiles(iPhone*,char*);
+BOOL       DLL_EXPORT iPhone_FileExists(iPhone*,char*);
+long       DLL_EXPORT iPhone_GetFileSize(iPhone*, char*);
+void       DLL_EXPORT iPhone_WaitForConnect(iPhone*);
+char       DLL_EXPORT *iPhone_GetLastError();
 iPhoneFile DLL_EXPORT *iPhone_fopen(iPhone *iphone, char *path, char *mode);
-void DLL_EXPORT iPhone_fclose(iPhone *iphone, iPhoneFile *file);
-long DLL_EXPORT iPhone_ftell(iPhone *iphone, iPhoneFile *file);
-int DLL_EXPORT iPhone_fread(iPhone *iphone, iPhoneFile *file, void *buffer, int offset, int count);
+void       DLL_EXPORT iPhone_fclose(iPhone *iphone, iPhoneFile *file);
+long       DLL_EXPORT iPhone_ftell(iPhone *iphone, iPhoneFile *file);
+int        DLL_EXPORT iPhone_fread(iPhone *iphone, iPhoneFile *file, void *buffer, int offset, int count);
 
 /* Private functions */
 void iPhone_SetLastError(char *format, ...);

@@ -14,18 +14,19 @@ typedef unsigned long long uint64_t;
 
 typedef enum
 {
-    Connected = 1,
-    Disconnected = 2,
-    Unknown = 3,
+    Connected    = 1, /** < The iPhone device was connected */
+    Disconnected = 2, /** < The iPhone device was disconneced */
+    Unknown      = 3, /** < Unknown device status */
 } NotificationMessage;
 
 typedef struct AMDeviceNotificationCallbackInfo_t
 {
-    void *dev;
-    NotificationMessage msg;
+    void *dev;               /** < Handle to the iPhone device. */
+    NotificationMessage msg; /** < Message regarding the connection (see) NotificationMessage */
     
 } AMDeviceNotificationCallbackInfo;
 
+/** Function prototype for AMDeviceNotificationCallback */
 typedef void (*DeviceNotificationCallback)(AMDeviceNotificationCallbackInfo*);
 
 typedef struct AMRecoveryDevice_t

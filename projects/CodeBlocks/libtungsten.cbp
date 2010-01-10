@@ -19,8 +19,9 @@
 				</Compiler>
 				<Linker>
 					<Add library="user32" />
-					<Add library="bin\Debug\iTunesMobileDevice.dll" />
-					<Add library="bin\Debug\CoreFoundation.dll" />
+					<Add library="C:\Program Files\Common Files\Apple\Mobile Device Support\bin\iTunesMobileDevice.dll" />
+					<Add library="C:\Program Files\Common Files\Apple\Mobile Device Support\bin\CoreFoundation.dll" />
+					<Add directory="C:\Program Files\Common Files\Apple\Mobile Device Support\bin" />
 				</Linker>
 			</Target>
 			<Target title="Release">
@@ -41,6 +42,12 @@
 			</Target>
 		</Build>
 		<Unit filename="..\..\iTunesMobileDevice.h" />
+		<Unit filename="..\..\iphonefile.c">
+			<Option compilerVar="CC" />
+		</Unit>
+		<Unit filename="..\..\test.c">
+			<Option compilerVar="CC" />
+		</Unit>
 		<Unit filename="..\..\tungsten.c">
 			<Option compilerVar="CC" />
 		</Unit>
