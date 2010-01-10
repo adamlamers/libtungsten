@@ -5,6 +5,23 @@
  * Contact: Adam Lamers <adam@millenniumsoftworks.com>
 */
 
+/********************************************************************************
+* This file is part of Tungsten.                                                *
+*                                                                               *
+* Tungsten is free software: you can redistribute it and/or modify              *
+* it under the terms of the GNU General Public License as published by          *
+* the Free Software Foundation, either version 3 of the License, or             *
+* (at your option) any later version.                                           *
+*                                                                               *
+* Tungsten is distributed in the hope that it will be useful,                   *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of                *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                 *
+* GNU General Public License for more details.                                  *
+*                                                                               *
+* You should have received a copy of the GNU General Public License             *
+* along with Tungsten.  If not, see <http://www.gnu.org/licenses/>.             *
+********************************************************************************/
+
 #ifndef ITUNESMOBILEDEVICE_H_INCLUDED
 #define ITUNESMOBILEDEVICE_H_INCLUDED
 
@@ -33,9 +50,9 @@ typedef struct AMRecoveryDevice_t
 {
     char unk0[8];
     
-} AMRecoveryDevice;
+} AMRecoveryDevice; /* Do not use. */
 
-typedef void (*DeviceRestoreNotificationCallback)(AMRecoveryDevice*);
+typedef void (*DeviceRestoreNotificationCallback)(AMRecoveryDevice*); /* Dummy prototype, can't actually use the device in recovery mode anyway. */
 
 #ifdef __cplusplus
 extern "C"
@@ -75,6 +92,8 @@ int __declspec(dllimport) AFCFileRefTell(void *hAFC, int64_t handle, long *posit
 int __declspec(dllimport) AFCFileRefSeek(void *hAFC, int64_t handle, int pos, int org);
 int __declspec(dllimport) AFCFlushData(void *hAFC, int64_t handle);
 int __declspec(dllimport) AFCFileRefClose(void *hAFC, int64_t handle);
+
+int __declspec(dllimport) AFCErrnoToAFCError(int err, char **msg);
 
 /*CoreFoundations.dll */
 void* __declspec(dllimport) __CFStringMakeConstantString(char* s);

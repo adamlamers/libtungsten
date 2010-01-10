@@ -5,6 +5,23 @@
  * Contact: Adam Lamers <adam@millenniumsoftworks.com>
 */
 
+/********************************************************************************
+* This file is part of Tungsten.                                                *
+*                                                                               *
+* Tungsten is free software: you can redistribute it and/or modify              *
+* it under the terms of the GNU General Public License as published by          *
+* the Free Software Foundation, either version 3 of the License, or             *
+* (at your option) any later version.                                           *
+*                                                                               *
+* Tungsten is distributed in the hope that it will be useful,                   *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of                *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                 *
+* GNU General Public License for more details.                                  *
+*                                                                               *
+* You should have received a copy of the GNU General Public License             *
+* along with Tungsten.  If not, see <http://www.gnu.org/licenses/>.             *
+********************************************************************************/
+
 #ifndef __TUNGSTEN_H__
 #define __TUNGSTEN_H__
 #include <windows.h>
@@ -23,10 +40,6 @@ typedef struct iPhoneFile_tag
 typedef struct iPhone_tag
 {
     DeviceNotificationCallback        dnc;  /** < Standard device notification callback */
-    DeviceRestoreNotificationCallback drn1; /** < DFU connect notification callback */
-    DeviceRestoreNotificationCallback drn2; /** < Recovery mode connect notification callback */
-    DeviceRestoreNotificationCallback drn3; /** < DFU disconnect notification callback */
-    DeviceRestoreNotificationCallback drn4; /** < Recovery mode disconnect notification callback */
 
     void* handle;                           /** < Handle to device. */
     void* hAFC;                             /** < com.apple.AFC service handle */
@@ -63,7 +76,8 @@ char       DLL_EXPORT *iPhone_GetLastError();
 iPhoneFile DLL_EXPORT *iPhone_fopen(iPhone *iphone, char *path, char *mode);
 void       DLL_EXPORT iPhone_fclose(iPhone *iphone, iPhoneFile *file);
 long       DLL_EXPORT iPhone_ftell(iPhone *iphone, iPhoneFile *file);
-int        DLL_EXPORT iPhone_fread(iPhone *iphone, iPhoneFile *file, void *buffer, int offset, int count);
+int        DLL_EXPORT iPhone_fread(iPhone *iphone, iPhoneFile *file, void *buffer, int count);
+int        DLL_EXPORT iPhone_CopyFileFromDevice(iPhone*, char*, char*);
 
 /* Private functions */
 void iPhone_SetLastError(char *format, ...);

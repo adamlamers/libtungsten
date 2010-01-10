@@ -1,9 +1,26 @@
 /* File: iphonefile.c
  * Creation Date: January 9th, 2010
  * Last Modified Date: January 9th, 2010
- * Version: 0.0.1
+ * Version: 0.0.6
  * Contact: Adam Lamers <adam@millenniumsoftworks.com>
 */
+
+/********************************************************************************
+* This file is part of Tungsten.                                                *
+*                                                                               *
+* Tungsten is free software: you can redistribute it and/or modify              *
+* it under the terms of the GNU General Public License as published by          *
+* the Free Software Foundation, either version 3 of the License, or             *
+* (at your option) any later version.                                           *
+*                                                                               *
+* Tungsten is distributed in the hope that it will be useful,                   *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of                *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                 *
+* GNU General Public License for more details.                                  *
+*                                                                               *
+* You should have received a copy of the GNU General Public License             *
+* along with Tungsten.  If not, see <http://www.gnu.org/licenses/>.             *
+********************************************************************************/
 
 #include "tungsten.h"
 #include <stdio.h>
@@ -66,7 +83,14 @@ long iPhone_ftell(iPhone *iphone, iPhoneFile *file)
     return pos;
 }
 
-int iPhone_fread(iPhone *iphone, iPhoneFile *file, void *buffer, int offset, int count)
+/** Read a sequence of bytes from a file on the device into a buffer.
+  * @param iphone The iPhone which the file belongs to.
+  * @param file   The file to read from.
+  * @param buffer Buffer of length of at least "count"
+  * @param count  Number of bytes to read.
+  * @return Number of bytes sucessfully read.
+  */
+int iPhone_fread(iPhone *iphone, iPhoneFile *file, void *buffer, int count)
 {
     void *buf;
     buf = malloc(count);
@@ -79,7 +103,40 @@ int iPhone_fread(iPhone *iphone, iPhoneFile *file, void *buffer, int offset, int
         free(buf);
         return 0;
     }
-    memcpy(buffer + offset, buf, bytesRead);
+    memcpy(buffer, buf, bytesRead);
     free(buf);
     return bytesRead;
+}
+
+/** Copy an entire file from the device to the local machine.
+  * @param iphone The iPhone which the file belongs to.
+  * @param pathOnDevice The UNIX style path to the file on the device.
+  * @param localPath The path to the local file to write to (will be overwritten if it exists)
+  * @return Number of bytes successfully copied.
+  */
+int iPhone_CopyFileFromDevice(iPhone *iphone, char *pathOnDevice, char *localPath)
+{
+    FILE *outfile = fopen(localPath, "wb");
+    if(outfile == NULL) return 0;
+    
+    iPhoneFile *devicefile = iPhone_fopen(iphone, pathOnDevice, "r");
+    if(devicefile == NULL) return 0;
+    
+    void *buf = malloc(BUFSIZ);
+    if(buf == NULL) return 0;
+    memset(buf, 0, BUFSIZ);
+    
+    int bytesRead = 0;
+    int totalRead = 0;
+    do
+    {
+        bytesRead = iPhone_fread(iphone, devicefile, buf, BUFSIZ);
+        totalRead += bytesRead;
+        fwrite(buf, bytesRead, 1, outfile);
+    }while(bytesRead > 0);
+    
+    iPhone_fclose(iphone, devicefile);
+    free(buf);
+    fclose(outfile);
+    return totalRead;
 }

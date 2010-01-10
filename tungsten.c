@@ -5,6 +5,23 @@
  * Contact: Adam Lamers <adam@millenniumsoftworks.com>
 */
 
+/********************************************************************************
+* This file is part of Tungsten.                                                *
+*                                                                               *
+* Tungsten is free software: you can redistribute it and/or modify              *
+* it under the terms of the GNU General Public License as published by          *
+* the Free Software Foundation, either version 3 of the License, or             *
+* (at your option) any later version.                                           *
+*                                                                               *
+* Tungsten is distributed in the hope that it will be useful,                   *
+* but WITHOUT ANY WARRANTY; without even the implied warranty of                *
+* MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the                 *
+* GNU General Public License for more details.                                  *
+*                                                                               *
+* You should have received a copy of the GNU General Public License             *
+* along with Tungsten.  If not, see <http://www.gnu.org/licenses/>.             *
+********************************************************************************/
+
 #include "tungsten.h"
 #include <stdio.h>
 #include <windows.h>
@@ -29,7 +46,7 @@ void iPhone_SetLastError(char *format, ...)
 }
 
 /** Initializes an iPhone, registering it's callbacks to recieve device notifications.
-  * @param iphone Pointer to an iPhone struct with the dnc, drn1, drn2, drn3, and drn4 members initialized to function callbacks.
+  * @param iphone Pointer to an iPhone struct with the dnc member is initialized to a DeviceNotification callback.
   */  
 void iPhone_init(iPhone *iphone)
 {
@@ -38,16 +55,18 @@ void iPhone_init(iPhone *iphone)
     if(ret != 0)
         iPhone_SetLastError("AMDeviceNotificationSubscribe failed with error %d", ret);
     
+    /*
     ret = AMRestoreRegisterForDeviceNotifications(iphone->drn1, iphone->drn2, iphone->drn3, iphone->drn4, 0, NULL);
     if(ret != 0)
         iPhone_SetLastError("AMRestoreRegisterForDeviceNotifications failed with error %d", ret);
+    */ /* Can't really do anything in recovery mode anyway. */
     free(notification);
 }
 
 /** Determines whether or not a file exists on the device.
   * @param iphone The iPhone on which to locate the file.
   * @param path   The UNIX style path to the file on the device.
-  * @returns BOOL indicating whether or not the file exists. (TRUE = exists)
+  * @return BOOL indicating whether or not the file exists. (TRUE = exists)
   */
 BOOL iPhone_FileExists(iPhone *iphone, char *path)
 {
@@ -87,7 +106,7 @@ BOOL iPhone_Connect(iPhone *iphone)
 {
     if(AMDeviceConnect(iphone->handle) == 1)
     { 
-        iPhone_SetLastError("Device is in recovery mode."); 
+        iPhone_SetLastError("Device is in recovery mode. Must be activated with iTunes."); 
         return FALSE ; 
     }
     
